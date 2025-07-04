@@ -1,8 +1,8 @@
 
 str_input ="ajay"
-tuple_input = ("a", "j", "a", "y")
-list_input = ["a", "j", "a", "y"]
-dict_input = {"a": 1, "j": 2, "a": 3, "y": 4}
+tuple_input = ("ajay", "singh", "rajpoot", "imazy" , 5 , 12, 33 , 45)
+list_input = ["ajay", "jitesh", "anurag", "arsh" , "rajpoot", 5, 12, 33, 45]
+dict_input = {"name": "ajay" , "surname": "rajpoot", "age": 40 }
 
 
 #program to reverse the string using slicing and loop 
@@ -23,7 +23,27 @@ class RevString:
         
 
 RevString(str_input) 
-RevString(tuple_input) 
-RevString(list_input) 
+# RevString(tuple_input) 
+# RevString(list_input) 
 # RevString(dict_input) 
 
+
+class Slicing:
+    
+    def slice_tuple(self, input): 
+        print(input[2:5])
+        
+    def slice_list(self,input):
+        print(input[2:5])
+        
+    def slice_dict(self, input):
+        print(input["name"][::-1], input["surname"][::-1], input["age"])
+    
+    def __init__(self, input):
+        # self.slice_tuple(input)
+        # self.slice_list(input)
+        self.slice_dict(input)
+
+# Slicing(tuple_input)
+# Slicing(list_input)
+Slicing(dict_input)
