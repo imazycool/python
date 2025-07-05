@@ -103,3 +103,4 @@ print(list(result))
 n=[ 0,1,2,3,4,5,6,7,8,9,11,112,1212,134]
 result= map(lambda x : "FizzBuzz" if (x%3==0 and x%5==0) else "Fizz" if (x%3==0) else "Buzz" if (x%5==0) else x , n ) 
 print(list(result))
+print(map(int , n))

@@ -17,6 +17,11 @@ class RevString:
             rev_str+= input[len(input)-i-1]
         print(rev_str)
     
+    def func_reverse_word(str_input):
+        for i in range(len(str_input)-1,-1,-1):
+            print(str_input[i] , end="")
+        print("")
+    
     def __init__(self, input):
         self.rev_string(input)
         self.rev_str(input)
