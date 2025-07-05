@@ -28,7 +28,14 @@ class Operations:
                 print("* ", end="")
             print("")
 
-
+    def func_getFabonacci( end_num):
+        x,y=0,1
+        print(x , end=", ")
+        while y<=end_num:
+            print(y , end=", ")
+            x, y = y, x+y 
+        print("")
+        
     def func_reverse_word(str_input):
         for i in range(len(str_input)-1,-1,-1):
             print(str_input[i] , end="")
@@ -57,3 +64,14 @@ Operations.func_draw_verticle_triangle(5)
 
 #accepts a word from the user and reverses it.
 Operations.func_reverse_word("ajay")
+
+
+##count the number of even and odd numbers in a series of numbers
+numbers = (1, 2, 3, 4, 5, 6, 7, 8, 9) 
+print("count of even numbers is --> " , len(list(filter(lambda x:x%2==0,numbers))))
+print("count of odd numbers is --> ", len(list(filter(lambda x:x%2!=0, numbers ))))
+
+
+
+##get the Fibonacci series between 0 and 50. 
+Operations.func_getFabonacci(8)
