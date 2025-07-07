@@ -16,4 +16,13 @@ print(fruits.index("banana"))
 if "banana" in fruits:
     fruits.pop(fruits.index("banana"))
 print(fruits)
-print(sorted(color_set))
+# print(sorted(color_set))
+
+
+##dictionary 
+my_dict = dict() 
+my_dict["name"]="ajay"
+print(my_dict)
+print(my_dict.keys())
+print(my_dict.values())
+print(my_dict.items())
