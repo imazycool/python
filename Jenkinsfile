@@ -17,7 +17,7 @@ pipeline{
 }
 */
 
-pipeline{
+pipeline {
     agent { label "ub-jen" }
     tools {
         maven "MAVEN3.9"
@@ -28,11 +28,20 @@ pipeline{
         PASSWORD = "4223"
         MY_TEXT = "hello world from environment"
         SONARQUBE_ENV = "SONAR6.2"
+        SINAR_CUBE_SERVER ="sonarcube_server"
     }
     stages{
         stage ("code checkout") {
             steps{
-                git url:"https://github.com/hkhcoder/vprofile-project.git" , branch: "atom"
+                // ## git branch: "atom" , url:"https://github.com/hkhcoder/vprofile-project.git" 
+                checkout([
+                      $class: 'GitSCM',
+                      branches: [[name: '*/atom']],
+                      userRemoteConfigs: [[
+                        url: "https://github.com/hkhcoder/vprofile-project.git"  ,
+                        credentialsId: 'gh-token-id'
+                      ]]
+                    ])
             }
         }
 
@@ -50,6 +59,19 @@ pipeline{
                 }
                 failure {
                     echo 'Build failed. No artifacts will be archived.'
+                }
+            }
+        }
+
+        stage('SonarQube Scan') {
+            steps {
+                withSonarQubeEnv("${SINAR_CUBE_SERVER}") {
+                    sh """
+                    sonar-scanner \
+                      -Dsonar.projectKey=imazy-jenkins-project \
+                      -Dsonar.sources=. \
+                      -Dsonar.java.binaries=target/classes
+                    """
                 }
             }
         }
