@@ -27,6 +27,7 @@ pipeline{
         USER_NAME = "admin"
         PASSWORD = "4223"
         MY_TEXT = "hello world from environment"
+        SONARQUBE_ENV = "SONAR6.2"
     }
     stages{
         stage ("code checkout") {
@@ -34,15 +35,39 @@ pipeline{
                 git url:"https://github.com/hkhcoder/vprofile-project.git" , branch: "atom"
             }
         }
-        stage ("run maven command"){
-            steps{
+
+        stage('BUILD'){
+            steps {
                 echo "####################################################"
                 sh "java -version"
                 echo "####################################################"
-                echo "this is user name : ${USER_NAME}"
-                echo "####################################################"
-                echo "####################################################"
+                sh 'mvn clean install -DskipTests'
+            }
+            post {
+                success {
+                    echo "Now Archiving..."
+                    archiveArtifacts artifacts: "**/target/*.war"
+                }
+                failure {
+                    echo 'Build failed. No artifacts will be archived.'
+                }
+            }
+        }
+
+        stage ("TEST"){
+            steps{
                 sh "mvn clean test"
+            }
+        }
+
+        stage ('CODE ANALYSIS WITH CHECKSTYLE'){
+            steps {
+                sh 'mvn checkstyle:checkstyle'
+            }
+            post {
+                success {
+                    echo 'Generated Analysis Result'
+                }
             }
         }
     }
