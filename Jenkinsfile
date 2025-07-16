@@ -25,7 +25,7 @@ pipeline {
     }
     environment{
         USER_NAME = "admin"
-        PASSWORD = "4223"
+        PASSWORD = ""
         MY_TEXT = "hello world from environment"
         SONARQUBE_ENV = "SONAR6.2"
         SINAR_CUBE_SERVER ="sonarcube_server"

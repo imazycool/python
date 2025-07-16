@@ -3,11 +3,10 @@ pipeline {
     tools {
         maven "MAVEN3.9"
         jdk "JDK17"
-        sonarScanner 'SONAR6.2'
     }
     environment{
         USER_NAME = "admin"
-        PASSWORD = "4223"
+        PASSWORD = ""
         MY_TEXT = "hello world from environment"
         SONARQUBE_ENV = tool "SONAR6.2"
         SONAR_CUBE_SERVER ="sonarcube_server"
@@ -26,7 +25,7 @@ pipeline {
                 echo "####################################################"
                 script {
                     withEnv(['MAVEN_OPTS=-Xmx2048m -Xms1024m']) {
-                        sh 'mvn clean install -DskipTests'
+                        mvn clean install -DskipTests
                     }
                 }
             }
