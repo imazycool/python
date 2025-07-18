@@ -1,0 +1,140 @@
+def COLOR_MAP = [
+    'SUCCESS': 'good', 
+    'FAILURE': 'danger',
+]
+
+pipeline{
+    agent { label "ub-jen" }
+    tools {
+        jdk "JDK17"
+        maven "MAVEN3.9"
+    }
+    environment {
+        USER_NAME = "admin"
+        PASSWD = "password"
+        SONAR_CUBE_SERVER = "sonarcube_server" 
+        WAR_FILE = 'vprofile-v2.war'
+        DOWNLOAD_URL = ""
+    }
+    stages {
+        stage ("code checkout") {
+            steps{
+                git url:"https://github.com/hkhcoder/vprofile-project.git" , branch:"docker"
+            }
+        }
+        stage ("maven build") {
+            steps {
+                echo "####################################################"
+                sh "java -version"
+                echo "####################################################"
+                script {
+                    withEnv(['MAVEN_OPTS=-Xmx2048m -Xms1024m']) {
+                        sh "mvn clean install -DskipTests"
+                    }
+                }
+            }
+            post{
+                success{
+                    echo "*********------- archieving artifacts ------->>>>>>> "
+                    archiveArtifacts artifacts: "**/target/*.war"
+                }
+                failure{
+                    echo 'Build failed. No artifacts will be archived.'
+                    echo "###########################################################"
+                }
+            }
+        }
+        stage ("test") {
+            steps{
+                echo "###########################################################"
+                sh "mvn test"
+                echo "###########################################################"
+            }
+        }
+        stage ("code analysis - checkstyle") {
+            steps{
+                echo "###########################################################"
+                sh "mvn checkstyle:checkstyle"
+            }
+            post{
+                success{
+                    echo "###########################################################"
+                    echo "checkstyle code analysis completed"
+                }
+            }
+        }
+        stage ("upload report sonarqube") {
+            environment {
+                scannerHome = tool 'SONAR6.2'
+            }
+            steps {
+                withSonarQubeEnv("${SONAR_CUBE_SERVER}") {
+                    sh """ ${scannerHome}/bin/sonar-scanner  -Dsonar.projectKey=imazy-jenkins-project \
+                      -Dsonar.sources=. \
+                      -Dsonar.java.binaries=target/classes
+                    """
+                }
+            }
+        }
+        
+        stage ("get archieve path"){
+            steps{
+                script {
+                    def jobName = env.JOB_NAME.replaceAll('%2F', '/')
+                    def buildNumber = env.BUILD_NUMBER
+                    def artifactName = 'target/vprofile-v2.war'
+                    env.jen_home = "${env.JENKINS_HOME}"
+                    env.artifact_file = "${env.jen_home}/jobs/${jobName}/builds/${buildNumber}/archive/${artifactName}"
+                    echo "Artifact Download URL: ${env.artifact_file}"
+                }
+            }
+        }
+
+        stage('Build App Image') {
+          steps {
+            script {
+                dockerImage = docker.build( appRegistry + ":$BUILD_NUMBER", "./Docker-files/app/multistage/")
+                sh "docker images "
+            }
+          }
+        }
+
+        stage ("export var file to nexus") {
+            steps{
+                echo "###########################################################"
+                sh "ls -ltr target/"
+                sh "file target/vprofile-v2.war"
+                sh "file --mime-type target/vprofile-v2.war"
+                echo "###########################################################"
+                nexusArtifactUploader(
+                    nexusVersion: "nexus3" ,
+                    protocol: "http" ,
+                    nexusUrl: "192.168.223.139:8081" , 
+                    groupId: "nexus-qa" ,
+                    version: "${env.BUILD_ID}-${env.BUILD_TIMESTAMP}" ,
+                    repository: "imazy-repo" ,
+                    // RepositoryId of the Repository in Nexus to which this artifact to be uploaded.
+                    credentialsId: "nexus_repo" ,
+                    artifacts: [
+                        // Array / List of Nested Object
+                        [artifactId: "imazy-vp" ,
+                        classifier: '',
+                        type: "war" ,
+                        file: "target/vprofile-v2.war" ]
+                    ]
+                )
+            }
+        }
+    }
+    post {
+        always {
+            echo 'Slack Notifications.'
+            slackSend channel: '#all-imazy-devops',
+                color: COLOR_MAP[currentBuild.currentResult],
+                message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} build ${env.BUILD_NUMBER} \n More info at: ${env.BUILD_URL}"
+        }
+    }
+}
+
+
+  
