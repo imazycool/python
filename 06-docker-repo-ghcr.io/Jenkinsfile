@@ -100,41 +100,6 @@ pipeline{
             }
         }
 
-        stage('Clean Docker Images') {
-            steps {
-                script {
-                    echo "Cleaning all local Docker images..."
-                    sh '''
-                        docker image prune -af || true
-                    '''
-                }
-            }
-        }
-
-        // stage('Build App Image') {
-        //     steps {
-        //         script {
-        //             echo "XXXXXXXXXXXX------   Cleaning all local Docker images...-------XXXXXXXXXXXXX "
-        //             sh  "docker image prune -af || true " 
-        //             dockerImage = docker.build("${appRegistry}:${BUILD_NUMBER}", "--build-arg MAVEN_OPTS='-Xmx2048m' ./Docker-files/app/multistage/")
-        //             sh "docker images"
-        //         }
-        //     }
-        // }
-
-        // stage('Image Push to GHCR') {
-        //     steps {
-        //         withCredentials([string(credentialsId: 'GHCR_CREDENTIALS', variable: 'GHCR_TOKEN')]) {
-        //             script {
-        //                 sh """#!/bin/bash
-        //                 echo "\$GHCR_TOKEN" | docker login ghcr.io -u imazycool --password-stdin
-        //                 docker push ${appRegistry}:${BUILD_NUMBER}
-        //                 """
-        //             }
-        //         }
-        //     }
-        // }
-
         stage('Build App Image') {
             steps {
                 script {
@@ -186,6 +151,18 @@ pipeline{
                 )
             }
         }
+
+        stage('Clean created Docker Images') {
+            steps {
+                script {
+                    echo "Cleaning all local Docker images..."
+                    sh '''
+                        docker image prune -af || true
+                    '''
+                }
+            }
+        }
+        
     }
     post {
         always {
