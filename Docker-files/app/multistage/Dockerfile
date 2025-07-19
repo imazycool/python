@@ -17,7 +17,8 @@ FROM tomcat:10-jdk21
 RUN rm -rf /usr/local/tomcat/webapps/*
 
 # Copy built WAR from builder stage
-COPY --from=BUILD_IMAGE vprofile-project/target/vprofile-v2.war /usr/local/tomcat/webapps/ROOT.war
+## COPY --from=BUILD_IMAGE vprofile-project/target/vprofile-v2.war /usr/local/tomcat/webapps/ROOT.war
+COPY --from=BUILD_IMAGE python/target/vprofile-v2.war /usr/local/tomcat/webapps/ROOT.war
 
 EXPOSE 8080
 CMD ["catalina.sh", "run"]
