@@ -7,7 +7,7 @@ RUN git clone --branch app_branch  https://github.com/imazycool/python.git
 ENV MAVEN_OPTS="-Xmx2048m"
 
 # Run mvn install with heap increased
-RUN cd vprofile-project && git checkout docker && mvn clean install
+RUN cd python && git checkout docker && mvn clean install
 
 # Second stage
 FROM tomcat:10-jdk21
