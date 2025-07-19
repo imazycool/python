@@ -1,7 +1,7 @@
 FROM maven:3.9.9-eclipse-temurin-21-jammy AS BUILD_IMAGE
 
 # Clone the repo with a specific branch (e.g., 'docker')
-RUN git clone --branch app_branch  https://github.com/hkhcoder/vprofile-project.git
+RUN git clone --branch app_branch  https://github.com/imazycool/python.git
 
 # Set heap size for Maven (this solves the error)
 ENV MAVEN_OPTS="-Xmx2048m"
