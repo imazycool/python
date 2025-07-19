@@ -15,11 +15,17 @@ pipeline{
         SONAR_CUBE_SERVER = "sonarcube_server" 
         WAR_FILE = 'vprofile-v2.war'
         DOWNLOAD_URL = ""
+        appRegistry = "ghcr.io/imazycool/vprofile"
+        IMAGE_NAME = "ghcr.io/imazyccol/imazy-jenkins"
+        IMAGE_TAG = "latest"
+        FULL_IMAGE = "${IMAGE_NAME}:${IMAGE_TAG}"
+        DOCKER_IMAGE = "ghcr.io/imazycool/vprofile"
+        GHCR_CREDENTIALS = credentials('jenkins-ghcr.io') // Secret Text: GitHub PAT
     }
     stages {
         stage ("code checkout") {
             steps{
-                git url:"https://github.com/hkhcoder/vprofile-project.git" , branch:"docker"
+                git url: "https://github.com/imazycool/python.git" , branch:"docker"
             }
         }
         stage ("maven build") {
@@ -69,10 +75,14 @@ pipeline{
             }
             steps {
                 withSonarQubeEnv("${SONAR_CUBE_SERVER}") {
-                    sh """ ${scannerHome}/bin/sonar-scanner  -Dsonar.projectKey=imazy-jenkins-project \
-                      -Dsonar.sources=. \
-                      -Dsonar.java.binaries=target/classes
-                    """
+                    sh '''${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=imazy-jenkins-project \
+                   -Dsonar.projectName=vprofile \
+                   -Dsonar.projectVersion=1.0 \
+                   -Dsonar.sources=src/ \
+                   -Dsonar.java.binaries=target/test-classes/com/visualpathit/account/controllerTest/ \
+                   -Dsonar.junit.reportsPath=target/surefire-reports/ \
+                   -Dsonar.jacoco.reportsPath=target/jacoco.exec \
+                   -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml'''
                 }
             }
         }
@@ -90,15 +100,66 @@ pipeline{
             }
         }
 
-        stage('Build App Image') {
-          steps {
-            script {
-                dockerImage = docker.build( appRegistry + ":$BUILD_NUMBER", "./Docker-files/app/multistage/")
-                sh "docker images "
+        stage('Clean Docker Images') {
+            steps {
+                script {
+                    echo "Cleaning all local Docker images..."
+                    sh '''
+                        docker image prune -af || true
+                    '''
+                }
             }
-          }
         }
 
+        // stage('Build App Image') {
+        //     steps {
+        //         script {
+        //             echo "XXXXXXXXXXXX------   Cleaning all local Docker images...-------XXXXXXXXXXXXX "
+        //             sh  "docker image prune -af || true " 
+        //             dockerImage = docker.build("${appRegistry}:${BUILD_NUMBER}", "--build-arg MAVEN_OPTS='-Xmx2048m' ./Docker-files/app/multistage/")
+        //             sh "docker images"
+        //         }
+        //     }
+        // }
+
+        // stage('Image Push to GHCR') {
+        //     steps {
+        //         withCredentials([string(credentialsId: 'GHCR_CREDENTIALS', variable: 'GHCR_TOKEN')]) {
+        //             script {
+        //                 sh """#!/bin/bash
+        //                 echo "\$GHCR_TOKEN" | docker login ghcr.io -u imazycool --password-stdin
+        //                 docker push ${appRegistry}:${BUILD_NUMBER}
+        //                 """
+        //             }
+        //         }
+        //     }
+        // }
+
+        stage('Build App Image') {
+            steps {
+                script {
+                    echo "XXXXXXXXXXXX------   Cleaning all local Docker images...-------XXXXXXXXXXXXX "
+                    sh "docker image prune -af || true"
+                    def dockerImage = docker.build("${appRegistry}:${BUILD_NUMBER}", "--build-arg MAVEN_OPTS='-Xmx2048m' ./Docker-files/app/multistage/")
+                    sh "docker images"
+                }
+            }
+        }
+
+       stage('Image Push to GHCR') {
+            steps {
+                withCredentials([string(credentialsId: 'GHCR_TOKEN', variable: 'TOKEN')]) {
+                    script {
+                        sh "echo GHCR_TOKEN=\$TOKEN" 
+                        sh """
+                            echo "\$TOKEN" | docker login ghcr.io -u imazycool --password-stdin
+                            docker push ${appRegistry}:${BUILD_NUMBER}
+                        """
+                    }
+                }
+            }
+        }
+                
         stage ("export var file to nexus") {
             steps{
                 echo "###########################################################"
