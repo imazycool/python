@@ -1,0 +1,8 @@
+# Ignore everything
+**
+
+# But keep all files named Vagrantfile (any depth)
+!**/Vagrantfile
+
+# Also keep the .gitignore file itself
+!.gitignore
